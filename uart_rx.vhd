@@ -18,7 +18,7 @@ entity uart_rx is
         g_STOP_BITS  : stop_type := ONE_BIT -- Número de stop bits: "ONE_BIT" ou "TWO_BITS"
     );
     port (
-        i_baud   : in  std_logic;                                -- Clock do UART
+        i_baud  : in  std_logic;                                -- Clock do UART
         i_n_rst : in  std_logic;                                -- Reset síncrono, ativo em nível lógico baixo ('0')
         i_rx    : in  std_logic;                                -- Linha de recepção serial
         o_data  : out std_logic_vector(g_DATA_BITS-1 downto 0); -- Bits de dados recebidos pela linha serial
