@@ -3,7 +3,7 @@ use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 use work.uart_pkg.all;
 
--- ESSA SIMULAÇÃO PRECISA DE NO MÍNIMO 50 us!!!
+-- ESSA SIMULAÇÃO PRECISA DE NO MÍNIMO 100 us!!!
 
 entity tb_rx is
 end entity tb_rx;
@@ -46,7 +46,7 @@ begin
             g_STOP_BITS  => ONE_BIT
         )
         port map (
-            i_clk   => tb_baud_tick,
+            i_baud  => tb_baud_tick,
             i_n_rst => tb_n_rst,
             i_rx    => tb_rx,
             o_data  => tb_rx_data,
