@@ -43,9 +43,6 @@ architecture rtl of axis_fifo is
     signal rd_ptr     : natural range 0 to g_DEPTH-1 := 0; -- Ponteiro de leitura
     signal data_count : natural range 0 to g_DEPTH   := 0; -- Contador de elementos (precisa de um bit a mais para contar até g_DEPTH)
 
-    -- Sinais internos para registrar as saídas do lado Master
-    signal m_axis_tdata_reg  : std_logic_vector(g_DATA_WIDTH - 1 downto 0);
-
     -- Sinais internos para os flags de cheio/vazio
     signal fifo_full  : std_logic;
     signal fifo_empty : std_logic;
@@ -84,7 +81,6 @@ begin
     if rising_edge(i_clk) then
         if i_n_rst = '0' then
             rd_ptr <= 0;
-            m_axis_tdata_reg <= (others => '0');
         else
             -- Lógica para o ponteiro de leitura
             if rd_en = '1' then
@@ -95,9 +91,6 @@ begin
                     rd_ptr <= rd_ptr+1;
                 end if;
             end if;
-
-            -- Registra o dado de saída. O dado lido é sempre o que está no endereço rd_ptr
-            m_axis_tdata_reg <= mem(rd_ptr);
         end if;
     end if;
 end process read_process;
@@ -133,8 +126,8 @@ end process read_process;
     -- A FIFO está pronta para receber dados se não estiver cheia
     o_s_axis_tready <= not fifo_full;
 
-    -- Ligação da saída de dados ao registrador de dados
-    o_m_axis_tdata <= m_axis_tdata_reg;
+    -- Liga o dado de saída. O dado lido é sempre o que está no endereço rd_ptr
+    o_m_axis_tdata <= mem(rd_ptr);
     -- A FIFO tem dados válidos para enviar se não estiver vazia
     o_m_axis_tvalid <= not fifo_empty;
 
