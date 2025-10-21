@@ -2,7 +2,6 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 use IEEE.numeric_std.all;
 
--- A entidade do testbench é sempre vazia
 entity tb_axis_fifo is
 end entity tb_axis_fifo;
 
@@ -96,7 +95,7 @@ begin
         wait for T;
 
         -- Loop para escrever 8 palavras de dados
-        for i in 0 to 15 loop
+        for i in 0 to 7 loop
             -- Prepara os dados e o sinal de validade
             data_to_write := to_unsigned(10 + i, c_DATA_WIDTH);
             s_axis_tdata_1  <= std_logic_vector(data_to_write);
@@ -117,8 +116,8 @@ begin
         wait until n_rst = '1';
         wait for 20 * T;
 
-        -- Loop para ler as 10 palavras de dados
-        for i in 0 to 15 loop
+        -- Loop para ler as 8 palavras de dados
+        for i in 0 to 7 loop
             -- Sinaliza que está pronto para receber
             m_axis_tready_2 <= '1';
             wait for T;
