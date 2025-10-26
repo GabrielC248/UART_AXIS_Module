@@ -11,8 +11,8 @@ use IEEE.numeric_std.all;
 
 entity axis_fifo is
     generic (
-        g_DATA_WIDTH : natural := 32; -- Largura da palavra de dados em bits
-        g_DEPTH      : natural := 16  -- Profundidade da FIFO (número de palavras)
+        g_DATA_WIDTH : natural := 8; -- Largura da palavra de dados em bits
+        g_DEPTH      : natural := 16 -- Profundidade da FIFO (número de palavras)
     );
     port (
         -- Sinais Globais
@@ -38,13 +38,13 @@ architecture rtl of axis_fifo is
     type mem_type is array (0 to g_DEPTH-1) of std_logic_vector(g_DATA_WIDTH-1 downto 0);
 
     -- Sinais internos
-    signal mem        : mem_type;                          -- A memória RAM interna
+    signal mem        : mem_type;                          -- A memória interna
     signal wr_ptr     : natural range 0 to g_DEPTH-1 := 0; -- Ponteiro de escrita
     signal rd_ptr     : natural range 0 to g_DEPTH-1 := 0; -- Ponteiro de leitura
     signal data_count : natural range 0 to g_DEPTH   := 0; -- Contador de elementos (precisa de um bit a mais para contar até g_DEPTH)
     
     -- Registradores para as Saídas
-    signal axis_tdata_reg  : std_logic_vector(g_DATA_WIDTH - 1 downto 0) := (others => '0');
+    signal axis_tdata_reg  : std_logic_vector(g_DATA_WIDTH - 1 downto 0);
     signal axis_tvalid_reg : std_logic := '0';
 
     -- Sinais internos para os flags de cheio/vazio
@@ -78,26 +78,31 @@ begin
         end if;
     end process write_process;
 
-    -- ---------------- Processo de Leitura e Saídas - I ----------------
+    -- ---------------- Processo de Leitura - I ----------------
 
-read_process: process(i_clk)
-begin
-    if rising_edge(i_clk) then
-        if i_n_rst = '0' then
-            rd_ptr <= 0;
-        else
-            -- Lógica para o ponteiro de leitura
-            if rd_en = '1' then
-                -- Incrementa o ponteiro de leitura, com wrap-around
-                if rd_ptr = g_DEPTH-1 then
-                    rd_ptr <= 0;
-                else
-                    rd_ptr <= rd_ptr+1;
+    read_process: process(i_clk)
+    begin
+        if rising_edge(i_clk) then
+            if i_n_rst = '0' then
+                rd_ptr <= 0;
+            else
+                -- Lógica para o ponteiro de leitura
+                if rd_en = '1' then
+                    -- Incrementa o ponteiro de leitura, com wrap-around
+                    if rd_ptr = g_DEPTH-1 then
+                        rd_ptr <= 0;
+                    else
+                        rd_ptr <= rd_ptr+1;
+                    end if;
                 end if;
+
+                -- Saídas Registradas
+                axis_tdata_reg <= mem(rd_ptr);
+                axis_tvalid_reg <= not fifo_empty;
+
             end if;
         end if;
-    end if;
-end process read_process;
+    end process read_process;
 
     -- ---------------- Processo do Contador - I ----------------
     counter_process: process(i_clk)
@@ -106,16 +111,12 @@ end process read_process;
             if i_n_rst = '0' then
                 data_count <= 0;
             else
-                -- Se wr_en e rd_en forem ambos '1' ou ambos '0', o contador não muda.
+                -- Se wr_en e rd_en forem ambos '1' ou ambos '0', o contador não muda
                 if wr_en = '1' and rd_en = '0' then -- Apenas escrita
                     data_count <= data_count + 1;
                 elsif wr_en = '0' and rd_en = '1' then -- Apenas leitura
                     data_count <= data_count - 1;
                 end if;
-
-                -- Saídas Registradas
-                axis_tdata_reg  <= mem(rd_ptr);
-                axis_tvalid_reg <= not fifo_empty;
 
             end if;
         end if;
@@ -136,10 +137,8 @@ end process read_process;
     o_s_axis_tready <= not fifo_full;
 
     -- Liga o dado de saída. O dado lido é sempre o que está no endereço rd_ptr
-    o_m_axis_tdata <= axis_tdata_reg;
-    --o_m_axis_tdata <= mem(rd_ptr);
+    o_m_axis_tdata <= mem(rd_ptr);
     -- A FIFO tem dados válidos para enviar se não estiver vazia
-    o_m_axis_tvalid <= axis_tvalid_reg;
-    --o_m_axis_tvalid <= not fifo_empty;
+    o_m_axis_tvalid <= not fifo_empty;
 
 end architecture rtl;
