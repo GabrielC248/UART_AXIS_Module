@@ -14,7 +14,7 @@ entity uart_rx is
     generic (
         g_OVERSAMPLE : positive := 16;      -- Fator de oversampling, define quantos ciclos de clock duram um bit na transmissão (quanto maior mais preciso)
         g_DATA_BITS  : positive := 8;       -- Número de bits de dados a serem transmitidos
-        g_PARITY_BIT : parity_type := NONE; -- Tipo de paridade: "NONE" (nenhuma), "EVEN" (par) ou "ODD" (ímpar)
+        g_PARITY_BIT : parity_type := EVEN; -- Tipo de paridade: "NONE" (nenhuma), "EVEN" (par) ou "ODD" (ímpar)
         g_STOP_BITS  : stop_type := ONE_BIT -- Número de stop bits: "ONE_BIT" ou "TWO_BITS"
     );
     port (
